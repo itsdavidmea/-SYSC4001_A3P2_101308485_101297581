@@ -4,6 +4,8 @@
 
 #include <cstdlib>
 #include "part2.hpp"
+
+//"To run the program, do: ./interrutps <your_trace_file.txt> <your_vector_table.txt> <your_device_table.txt> <your_external_files.txt>"
 int main(int argc, char *argv[]) {
     if (argc != 2) {
         // Check if the number of arguments is correct
@@ -19,6 +21,8 @@ int main(int argc, char *argv[]) {
     //all TAs must work with the data in shared memory 
 
     //take data from main memory and put it in a file 
+    SharedMemory memory;
+    memory.rubric = RubricItem;
 
     return 0; 
 }
