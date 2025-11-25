@@ -10,27 +10,31 @@
 
 //struct that represents rubric 
 
-struct rubricItem
+#include <string>
+#include <vector>
+
+struct RubricItem
 {
     unsigned int exerciseNum;
     std::string exerciseText;
 
-    rubricItem(unsigned int _eN, std::string _eT): 
-        exerciseNum(_eN), exerciseText(_eT) {}
-
-
+    RubricItem(unsigned int n, const std::string& t)
+        : exerciseNum(n), exerciseText(t) {}
 };
 
-rubricItem rubric[] = {};
-
-//in the memory, have rubric in one side and exam in the other, will use struct for this 
-
-struct sharedMemory
+struct Exam
 {
-    //exam number 
+    std::string examContent;
 
-    //rubric 
+    Exam(const std::string& c) : examContent(c) {}
 };
+
+struct SharedMemory
+{
+    std::vector<Exam> allExams;
+    std::vector<RubricItem> rubric;
+};
+
 
 
 #endif
