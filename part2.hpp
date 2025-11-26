@@ -49,9 +49,9 @@ struct SharedMemory
 std::tuple<std::vector<std::string>, std::vector<std::string>> parse_args(int argc, char **argv)
 {
 
-    if (argc != 5)
+    if (argc != 3)
     {
-        std::cout << "ERROR!\nExpected 3 argument, received " << argc - 1 << std::endl;
+        std::cout << "ERROR!\nExpected 3 argument, received " << argc  << std::endl;
         std::cout << "To run the program, do: ./part2 <rubric_file.txt> <exam_file.txt> " << std::endl;
         exit(1);
     }
@@ -91,6 +91,22 @@ std::tuple<std::vector<std::string>, std::vector<std::string>> parse_args(int ar
     return {rubric, exams};
 }
 
+std::vector<std::string> split(std::string input, std::string delim)
+{
+    std::vector<std::string> tokens;
+    std::size_t pos = 0;
+    std::string token;
+    while ((pos = input.find(delim)) != std::string::npos)
+    {
+        token = input.substr(0, pos);
+        tokens.push_back(token);
+        input.erase(0, pos + delim.length());
+    }
+    tokens.push_back(input);
+
+    return tokens;
+}
+
 std::vector<RubricItem> parseRubric(std::vector<std::string> lines)
 {
 
@@ -117,34 +133,44 @@ std::vector<Exam> parseExams(std::vector<std::string> lines)
     std::vector<Exam> exams;
     for (const std::string &line : lines)
     {
-        auto parts = split(line, ",");
-        if (parts.size() < 2)
-        {
-            std::cerr << "Error: Malformed input line: " << line << std::endl;
-            return {};
-        }
+        if (line.empty())
+            continue;
 
-        auto studentId = std::stoi(parts[0]);
+        auto studentId = std::stoi(line);
         exams.emplace_back(studentId);
     }
 
     return exams;
 }
 
-std::vector<std::string> split(std::string input, std::string delim)
+//functions to print rubric item 
+std::ostream& operator<<(std::ostream& os, const RubricItem& r)
 {
-    std::vector<std::string> tokens;
-    std::size_t pos = 0;
-    std::string token;
-    while ((pos = input.find(delim)) != std::string::npos)
-    {
-        token = input.substr(0, pos);
-        tokens.push_back(token);
-        input.erase(0, pos + delim.length());
-    }
-    tokens.push_back(input);
-
-    return tokens;
+    os << "RubricItem { number: " << r.number
+       << ", text: \"" << r.text << "\" }";
+    return os;
 }
+
+//functions to print operator 
+std::ostream& operator<<(std::ostream& os, const Exam& e)
+{
+    os << "Exam { studentId: " << e.studentId << " }";
+    return os;
+}
+
+//funtions to print shared memory 
+std::ostream& operator<<(std::ostream& os, const SharedMemory& sm)
+{
+    os << "Exams:\n";
+    for (const auto& exam : sm.exams)
+        os << "  - " << exam << "\n";
+
+    os << "Rubric:\n";
+    for (const auto& item : sm.rubric)
+        os << "  - " << item << "\n";
+
+    return os;
+}
+
 
 #endif

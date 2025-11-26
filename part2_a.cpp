@@ -3,6 +3,9 @@
 
 
 #include <cstdlib>
+#include <iostream>
+#include <vector>
+#include <string>
 #include "part2.hpp"
 
 //"To run the program, do: ./interrutps <your_trace_file.txt> <your_vector_table.txt> <your_device_table.txt> <your_external_files.txt>"
@@ -15,7 +18,8 @@ int main(int argc, char **argv) {
 
     memory.rubric = parseRubric(rubricFile);
     memory.exams = parseExams(examFile);
-    
+
+    std::cout << memory;
 
     return 0; 
 }
