@@ -14,23 +14,23 @@
 
 struct RubricItem
 {
-    unsigned int exerciseNum;
-    std::string exerciseText;
+    unsigned int number;
+    std::string text;
 
     RubricItem(unsigned int n, const std::string &t)
-        : exerciseNum(n), exerciseText(t) {}
+        : number(n), text(t) {}
 };
 
 struct Exam
 {
-    int examContent;
+    int studentId;
 
-    Exam(unsigned int c) : examContent(c) {}
+    Exam(unsigned int id) : studentId(id) {}
 };
 
 struct SharedMemory
 {
-    std::vector<Exam> allExams;
+    std::vector<Exam> exams;
     std::vector<RubricItem> rubric;
 };
 
@@ -56,9 +56,9 @@ std::tuple<std::vector<std::string>, std::vector<std::string>> parse_args(int ar
         exit(1);
     }
 
-    std::ifstream input_file;
-    input_file.open(argv[1]);
-    if (!input_file.is_open())
+    std::ifstream file;
+    file.open(argv[1]);
+    if (!file.is_open())
     {
         std::cerr << "Error: Unable to open file: " << argv[1] << std::endl;
         exit(1);
@@ -66,78 +66,72 @@ std::tuple<std::vector<std::string>, std::vector<std::string>> parse_args(int ar
 
     // processing the rubric file
 
-    std::string rubricLine;
+    std::string line;
     std::vector<std::string> rubric;
-    while (std::getline(input_file, rubricLine))
+    while (std::getline(file, line))
     {
-        rubric.push_back(rubricLine);
+        rubric.push_back(line);
     }
-    input_file.close();
+    file.close();
 
-    input_file.open(argv[2]);
-    if (!input_file.is_open())
+    file.open(argv[2]);
+    if (!file.is_open())
     {
         std::cerr << "Error: Unable to open file: " << argv[2] << std::endl;
         exit(1);
     }
 
-    std::string examLine;
     std::vector<std::string> exams;
-    while (std::getline(input_file, examLine))
+    while (std::getline(file, line))
     {
-        exams.push_back(examLine);
+        exams.push_back(line);
     }
-    input_file.close();
+    file.close();
 
     return {rubric, exams};
 }
 
-std::vector<RubricItem> createRubricItem(std::vector<std::string> rubricFile)
+std::vector<RubricItem> parseRubric(std::vector<std::string> lines)
 {
 
-    std::vector<RubricItem> finalRubric;
-    for (const std::string &item : rubricFile)
+    std::vector<RubricItem> rubric;
+    for (const std::string &line : lines)
     {
-        auto parts = split_delim(item, ",");
+        auto parts = split(line, ",");
         if (parts.size() < 2)
         {
-            std::cerr << "Error: Malformed input line: " << item << std::endl;
+            std::cerr << "Error: Malformed input line: " << line << std::endl;
             return {};
         }
 
-        auto exerciseNum = std::stoi(parts[0]);
-
-        auto exerciseText = parts[1];
-        RubricItem rubricLine(exerciseNum, exerciseText);
-        finalRubric.push_back(rubricLine);
+        auto number = std::stoi(parts[0]);
+        auto text = parts[1];
+        rubric.emplace_back(number, text);
     }
 
-    return finalRubric;
+    return rubric;
 }
 
-std::vector<Exam> createExam(std::vector<std::string> examFile)
+std::vector<Exam> parseExams(std::vector<std::string> lines)
 {
-    std::vector<Exam> finalExam;
-    for ( const std::string &item : examFile)
+    std::vector<Exam> exams;
+    for (const std::string &line : lines)
     {
-        auto parts = split_delim(item, ",");
+        auto parts = split(line, ",");
         if (parts.size() < 2)
         {
-            std::cerr << "Error: Malformed input line: " << item << std::endl;
+            std::cerr << "Error: Malformed input line: " << line << std::endl;
             return {};
         }
 
-        auto examContent = std::stoi(parts[0]);
-        Exam examLine(examContent);
-        finalExam.push_back(examLine);
-
+        auto studentId = std::stoi(parts[0]);
+        exams.emplace_back(studentId);
     }
 
-    return finalExam;
-    
+    return exams;
 }
 
-std::vector<std::string> split_delim(std::string input, std::string delim)
+std::vector<std::string> split(std::string input, std::string delim)
 {
     std::vector<std::string> tokens;
     std::size_t pos = 0;

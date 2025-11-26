@@ -13,7 +13,8 @@ int main(int argc, char **argv) {
     
     SharedMemory memory;
 
-    memory.rubric = createRubricItem(rubricFile);
+    memory.rubric = parseRubric(rubricFile);
+    memory.exams = parseExams(examFile);
     
 
     return 0; 
