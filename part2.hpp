@@ -23,9 +23,9 @@ struct RubricItem
 
 struct Exam
 {
-    std::string examContent;
+    int examContent;
 
-    Exam(const std::string &c) : examContent(c) {}
+    Exam(unsigned int c) : examContent(c) {}
 };
 
 struct SharedMemory
@@ -35,8 +35,6 @@ struct SharedMemory
 };
 
 // returns the files rubric
-
-
 
 /**
  * \brief parse the CLI arguments
@@ -97,7 +95,7 @@ std::tuple<std::vector<std::string>, std::vector<std::string>> parse_args(int ar
 std::vector<RubricItem> createRubricItem(std::vector<std::string> rubricFile)
 {
 
-    std::vector<RubricItem> finalRubric; 
+    std::vector<RubricItem> finalRubric;
     for (const std::string &item : rubricFile)
     {
         auto parts = split_delim(item, ",");
@@ -112,15 +110,31 @@ std::vector<RubricItem> createRubricItem(std::vector<std::string> rubricFile)
         auto exerciseText = parts[1];
         RubricItem rubricLine(exerciseNum, exerciseText);
         finalRubric.push_back(rubricLine);
-
-        
     }
 
     return finalRubric;
 }
 
-void addExamToMemory()
+std::vector<Exam> createExam(std::vector<std::string> examFile)
 {
+    std::vector<Exam> finalExam;
+    for ( const std::string &item : examFile)
+    {
+        auto parts = split_delim(item, ",");
+        if (parts.size() < 2)
+        {
+            std::cerr << "Error: Malformed input line: " << item << std::endl;
+            return {};
+        }
+
+        auto examContent = std::stoi(parts[0]);
+        Exam examLine(examContent);
+        finalExam.push_back(examLine);
+
+    }
+
+    return finalExam;
+    
 }
 
 std::vector<std::string> split_delim(std::string input, std::string delim)

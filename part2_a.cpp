@@ -9,8 +9,11 @@
 int main(int argc, char **argv) {
     
 
-    auto [rubric, exams] = parse_args(argc, argv);
+    auto [rubricFile, examFile] = parse_args(argc, argv);
     
+    SharedMemory memory;
+
+    memory.rubric = createRubricItem(rubricFile);
     
 
     return 0; 
