@@ -233,4 +233,24 @@ void delay(float seconds) {
     std::this_thread::sleep_for(std::chrono::duration<float>(seconds));
 
 }
+
+
+//changeRubricFunction 
+void changeRubric(const SharedMemory mem, std::string filename, int lineNumber, std::string textToChange){
+    std::ofstream file(filename);  // overwrites existing content
+    std::vector<RubricItem> rubric = mem.rubric;
+    int count = 0;
+    for (RubricItem item : rubric) {
+        if (count == lineNumber)
+        {
+           
+            file << item.number + ", " + textToChange << "\n";
+            continue;
+        }
+        
+        file << item.number + ", " + item.text << "\n";
+        count++;
+    }
+}
+
 #endif
