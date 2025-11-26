@@ -12,13 +12,14 @@
 int main(int argc, char **argv) {
     
 
-    auto [rubricFile, examFile] = parse_args(argc, argv);
+    auto [rubricFile, examFile, numTAs] = parse_args(argc, argv);
     
     SharedMemory memory;
 
     memory.rubric = parseRubric(rubricFile);
     memory.exams = parseExams(examFile);
 
+    std::cout << "Number of TAs: " << numTAs << "\n\n";
     std::cout << memory;
 
     return 0; 

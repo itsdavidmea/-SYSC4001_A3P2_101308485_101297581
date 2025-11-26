@@ -7,6 +7,10 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <random>
+#include <thread>
+#include <chrono>
+
 
 // do the data structure for my memory
 
@@ -46,13 +50,13 @@ struct SharedMemory
  * @return a vector of strings (the parsed vector table), a vector of delays, a vector of external files
  *
  */
-std::tuple<std::vector<std::string>, std::vector<std::string>> parse_args(int argc, char **argv)
+std::tuple<std::vector<std::string>, std::vector<std::string>, int> parse_args(int argc, char **argv)
 {
 
-    if (argc != 3)
+    if (argc != 4)
     {
-        std::cout << "ERROR!\nExpected 3 argument, received " << argc  << std::endl;
-        std::cout << "To run the program, do: ./part2 <rubric_file.txt> <exam_file.txt> " << std::endl;
+        std::cout << "ERROR!\nExpected 3 arguments, received " << argc - 1 << std::endl;
+        std::cout << "To run the program, do: ./part2 <rubric_file> <exam_file> <num_TAs>" << std::endl;
         exit(1);
     }
 
@@ -88,7 +92,14 @@ std::tuple<std::vector<std::string>, std::vector<std::string>> parse_args(int ar
     }
     file.close();
 
-    return {rubric, exams};
+    int numTAs = std::stoi(argv[3]);
+    if (numTAs <= 0)
+    {
+        std::cerr << "Error: Number of TAs must be positive" << std::endl;
+        exit(1);
+    }
+
+    return {rubric, exams, numTAs};
 }
 
 std::vector<std::string> split(std::string input, std::string delim)
@@ -173,4 +184,18 @@ std::ostream& operator<<(std::ostream& os, const SharedMemory& sm)
 }
 
 
+//create a random number generator with a given range of 2 numbers 
+float randomNumGenerator(float low, float high) {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dist(low, high);
+    return dist(gen);
+}
+
+
+//create a delay function 
+void delay(float seconds) {
+    std::this_thread::sleep_for(std::chrono::duration<float>(seconds));
+
+}
 #endif
