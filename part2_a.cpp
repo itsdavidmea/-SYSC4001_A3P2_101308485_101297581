@@ -15,11 +15,15 @@ int main(int argc, char **argv) {
     auto [rubricFile, examFile, numTAs] = parse_args(argc, argv);
     
     SharedMemory memory;
+    std::vector<TA> allTAs;
 
     memory.rubric = parseRubric(rubricFile);
     memory.exams = parseExams(examFile);
+    allTAs = createTAs(numTAs);
 
     std::cout << "Number of TAs: " << numTAs << "\n\n";
+    printTAs(allTAs);
+    std::cout << "\n";
     std::cout << memory;
 
     return 0; 

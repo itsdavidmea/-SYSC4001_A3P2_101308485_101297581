@@ -32,6 +32,13 @@ struct Exam
     Exam(unsigned int id) : studentId(id) {}
 };
 
+struct TA {
+    std::string name;
+    
+    TA(const std::string &n) 
+    : name(n) {}
+};
+
 struct SharedMemory
 {
     std::vector<Exam> exams;
@@ -154,6 +161,19 @@ std::vector<Exam> parseExams(std::vector<std::string> lines)
     return exams;
 }
 
+//create TAs list 
+std::vector<TA> createTAs(int numTAs) {
+    std::vector<TA> allTAs;
+    for (int i = 0; i < numTAs; i++)
+    {
+        TA person("Teaching Assistant" + std::to_string(i + 1));
+        allTAs.push_back(person);
+    }
+    
+    return allTAs;
+    
+}
+
 //functions to print rubric item 
 std::ostream& operator<<(std::ostream& os, const RubricItem& r)
 {
@@ -167,6 +187,21 @@ std::ostream& operator<<(std::ostream& os, const Exam& e)
 {
     os << "Exam { studentId: " << e.studentId << " }";
     return os;
+}
+
+//function to print TA
+std::ostream& operator<<(std::ostream& os, const TA& ta)
+{
+    os << "TA { name: \"" << ta.name << "\" }";
+    return os;
+}
+
+//function to print vector of TAs
+void printTAs(const std::vector<TA>& tas)
+{
+    std::cout << "TAs:\n";
+    for (const auto& ta : tas)
+        std::cout << "  - " << ta << "\n";
 }
 
 //funtions to print shared memory 
