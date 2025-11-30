@@ -10,27 +10,14 @@
 #include <random>
 #include <thread>
 #include <chrono>
+#include <cstring>
 
+#define RUBRIC_SIZE 256
 
 // do the data structure for my memory
 
 // struct that represents rubric
 
-struct RubricItem
-{
-    unsigned int number;
-    std::string text;
-
-    RubricItem(unsigned int n, const std::string &t)
-        : number(n), text(t) {}
-};
-
-struct Exam
-{
-    int studentId;
-
-    Exam(unsigned int id) : studentId(id) {}
-};
 
 struct TA {
     std::string name;
@@ -41,8 +28,8 @@ struct TA {
 
 struct SharedMemory
 {
-    std::vector<Exam> exams;
-    std::vector<RubricItem> rubric;
+    unsigned int exams;
+    char rubric[RUBRIC_SIZE];
 };
 
 // returns the files rubric
@@ -125,37 +112,45 @@ std::vector<std::string> split(std::string input, std::string delim)
     return tokens;
 }
 
-std::vector<RubricItem> parseRubric(std::vector<std::string> lines)
-{
 
-    std::vector<RubricItem> rubric;
+
+// Convert rubric file lines to a char array
+char* rubricToCharArray(const std::vector<std::string>& lines)
+{
+    // Allocate memory for the char array
+    char* rubric = new char[RUBRIC_SIZE];
+    rubric[0] = '\0';  // Initialize as empty string
+    
     for (const std::string &line : lines)
     {
-        auto parts = split(line, ",");
-        if (parts.size() < 2)
+        // Check if adding this line would overflow the buffer
+        if (strlen(rubric) + line.length() + 2 > RUBRIC_SIZE) // +2 for newline and null terminator
         {
-            std::cerr << "Error: Malformed input line: " << line << std::endl;
-            return {};
+            std::cerr << "Warning: Rubric data too large for buffer" << std::endl;
+            break;
         }
-
-        auto number = std::stoi(parts[0]);
-        auto text = parts[1];
-        rubric.emplace_back(number, text);
+        
+        // Concatenate the line and a newline character
+        
+        strcat(rubric, line.c_str());
+        strcat(rubric, "\n");
+      
     }
-
+    
     return rubric;
 }
 
-std::vector<Exam> parseExams(std::vector<std::string> lines)
+unsigned int parseExams(std::vector<std::string> lines)
 {
-    std::vector<Exam> exams;
+    unsigned int exams;
+    
     for (const std::string &line : lines)
     {
         if (line.empty())
             continue;
 
         auto studentId = std::stoi(line);
-        exams.emplace_back(studentId);
+        exams = studentId;
     }
 
     return exams;
@@ -174,20 +169,7 @@ std::vector<TA> createTAs(int numTAs) {
     
 }
 
-//functions to print rubric item 
-std::ostream& operator<<(std::ostream& os, const RubricItem& r)
-{
-    os << "RubricItem { number: " << r.number
-       << ", text: \"" << r.text << "\" }";
-    return os;
-}
 
-//functions to print operator 
-std::ostream& operator<<(std::ostream& os, const Exam& e)
-{
-    os << "Exam { studentId: " << e.studentId << " }";
-    return os;
-}
 
 //function to print TA
 std::ostream& operator<<(std::ostream& os, const TA& ta)
@@ -204,19 +186,7 @@ void printTAs(const std::vector<TA>& tas)
         std::cout << "  - " << ta << "\n";
 }
 
-//funtions to print shared memory 
-std::ostream& operator<<(std::ostream& os, const SharedMemory& sm)
-{
-    os << "Exams:\n";
-    for (const auto& exam : sm.exams)
-        os << "  - " << exam << "\n";
 
-    os << "Rubric:\n";
-    for (const auto& item : sm.rubric)
-        os << "  - " << item << "\n";
-
-    return os;
-}
 
 
 //create a random number generator with a given range of 2 numbers 
@@ -235,22 +205,6 @@ void delay(float seconds) {
 }
 
 
-//changeRubricFunction 
-void changeRubric(const SharedMemory mem, std::string filename, int lineNumber, std::string textToChange){
-    std::ofstream file(filename);  // overwrites existing content
-    std::vector<RubricItem> rubric = mem.rubric;
-    int count = 0;
-    for (RubricItem item : rubric) {
-        if (count == lineNumber)
-        {
-           
-            file << item.number + ", " + textToChange << "\n";
-            continue;
-        }
-        
-        file << item.number + ", " + item.text << "\n";
-        count++;
-    }
-}
+
 
 #endif
