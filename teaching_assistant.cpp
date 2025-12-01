@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
                     fputs(rubricString.c_str(), rubric_file);
                     fclose(rubric_file);
                 }
-                std::cout << "  [" << ta_name << "] ✅ Rubric updated successfully (New value: '" << shm_ptr->rubric[i + 3] << "')" << std::endl;
+                std::cout << "  [" << ta_name << "] ✅ Rubric updated successfully " << "Rubric Item #"<< shm_ptr->rubric[i] << " (New value: '" << shm_ptr->rubric[i + 3] << "')" << std::endl;
                 sem_post(&shm_ptr->rubric_mutex);
             }
             else
