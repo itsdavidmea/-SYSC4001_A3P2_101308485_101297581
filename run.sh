@@ -8,7 +8,8 @@ g++ -std=c++17 -o part2_a part2_a.cpp
 echo "Compiling teaching_assistant.cpp..."
 g++ -std=c++17 -o teaching_assistant teaching_assistant.cpp
 
-
+echo "Compiling reset_exams.cpp..."
+g++ -std=c++17 -o reset_exams reset_exams.cpp
 
 # Check if compilation was successful
 if [ $? -eq 0 ]; then

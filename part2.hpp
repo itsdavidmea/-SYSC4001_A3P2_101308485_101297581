@@ -11,8 +11,10 @@
 #include <thread>
 #include <chrono>
 #include <cstring>
+#include <iomanip>
 
 #define RUBRIC_SIZE 256
+#define FILE_SIZE 256
 
 // do the data structure for my memory
 
@@ -28,7 +30,7 @@ struct TA {
 
 struct SharedMemory
 {
-    unsigned int exams;
+    char exams[FILE_SIZE];
     char rubric[RUBRIC_SIZE];
 };
 
@@ -144,7 +146,7 @@ char* rubricToCharArray(const std::vector<std::string>& lines)
 std::string charArrayToString(char* charArray)
 {
     std::string newString = std::string(charArray);
-    std::cout << newString;
+
     return newString;
 }
 
@@ -218,6 +220,52 @@ void delay(float seconds) {
     std::this_thread::sleep_for(std::chrono::duration<float>(seconds));
 
 }
+
+
+//load new exam into memory 
+
+// Reset all exam files to their initial state (just student ID)
+
+
+void loadNewExam(char* path)
+{
+    // 1. Find directory part by locating the last '/'
+    char* slash = strrchr(path, '/');
+    char* filename = (slash ? slash + 1 : path);
+
+    // 2. Inside filename, find '_' and '.'
+    char* underscore = strchr(filename, '_');
+    char* dot = strchr(filename, '.');
+
+    if (!underscore || !dot)
+        return;  // invalid format, nothing to do
+
+    // 3. Extract the number after the underscore as an int
+    int num = 0;
+    sscanf(underscore + 1, "%d", &num);
+
+    // 4. Increment the number
+    num++;
+
+    // 5. Build new filename (exam_XXXX.txt)
+    char newFilename[64];
+    snprintf(newFilename, sizeof(newFilename),
+             "exam_%04d%s", num, dot);
+
+    // 6. Rewrite the original path using the new filename
+    if (slash) {
+        // Keep "directory/" and remove the old filename
+        *(slash + 1) = '\0';
+        strncat(path, newFilename, 255 - strlen(path));
+    } else {
+        // No directory, just overwrite the filename
+        strncpy(path, newFilename, 255);
+        path[255] = '\0';
+    }
+    std::cout << path;
+}
+
+
 
 
 

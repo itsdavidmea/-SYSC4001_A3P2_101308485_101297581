@@ -14,7 +14,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-
 #include <iostream>
 #include <vector>
 #include <string>
@@ -26,55 +25,49 @@ int main(int argc, char **argv)
 
     auto [rubricFile, examFile, numTAs] = parse_args(argc, argv);
 
-
     std::vector<TA> allTAs;
-    
 
-   
     allTAs = createTAs(numTAs);
-    
+
     std::cout << "Number of TAs: " << numTAs << "\n\n";
-   
+
     printTAs(allTAs);
     std::cout << "\n";
 
     std::cout << "--- Shared Memory Producer (Writer) ---" << std::endl;
-    
 
     // 1. Create and open the shared memory object
 
-    int shm_fd = shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666 );
+    int shm_fd = shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666);
     if (shm_fd == -1)
     {
         perror("shm_open failed");
         return 1;
     }
-    
+
     std::cout << "Shared Memory object created/opened: " << SHM_NAME << std::endl;
 
     // 2. Set the size of the shared memory object
     size_t shm_size = sizeof(SharedMemory);
-    if (ftruncate(shm_fd, shm_size) == -1 ) 
+    if (ftruncate(shm_fd, shm_size) == -1)
     {
         perror("ftruncate failed");
         shm_unlink(SHM_NAME);
         return 1;
     }
-    
-  
+
     std::cout << "Shared Memory size set to " << shm_size << " bytes." << std::endl;
 
     // 3. Map the shared memory object into the process's address space
     // PROT_WRITE: Allow writing to the memory
     // MAP_SHARED: Changes are visible to other processes
-    SharedMemory *shm_ptr = (SharedMemory*) mmap (
+    SharedMemory *shm_ptr = (SharedMemory *)mmap(
         0,
         shm_size,
         PROT_WRITE,
         MAP_SHARED,
         shm_fd,
-        0
-    );
+        0);
 
     if (shm_ptr == MAP_FAILED)
     {
@@ -83,23 +76,26 @@ int main(int argc, char **argv)
         shm_unlink(SHM_NAME);
         return 1;
     }
-    
-    
+
     std::cout << "Shared Memory successfully mapped." << std::endl;
 
     // 4. Write data to the shared memory
-    shm_ptr->exams = parseExams(examFile);
+    std::string exam_file = "exams/exam_0001.txt";
+
+    std::strncpy(shm_ptr->exams, exam_file.c_str(), sizeof(shm_ptr->exams) - 1);
+    shm_ptr->exams[sizeof(shm_ptr->exams) - 1] = '\0';
 
 
     char *conversion = rubricToCharArray(rubricFile);
     strncpy(shm_ptr->rubric, conversion, RUBRIC_SIZE - 1);
     shm_ptr->rubric[RUBRIC_SIZE - 1] = '\0';
     // Copy the string safely into the fixed-size array
-    
-    std::cout << "Data written: " 
-              << "Exams: " << shm_ptr->exams 
-              << ", Rubric: \n" << shm_ptr->rubric << "" << std::endl;
-    
+
+    std::cout << "Data written: "
+              << "Exams: " << shm_ptr->exams
+              << ", Rubric: \n"
+              << shm_ptr->rubric << "" << std::endl;
+
     std::cout << "Data is now live in shared memory." << std::endl;
 
     // Fork child processes to run teaching_assistant
@@ -117,7 +113,7 @@ int main(int argc, char **argv)
             // Child process - exec to teaching_assistant program
             std::string ta_name = "TA" + std::to_string(i + 1);
             execl("./teaching_assistant", "teaching_assistant", ta_name.c_str(), NULL);
-            
+
             // If exec fails, print error and exit
             perror("execl failed");
             exit(1);
@@ -129,17 +125,19 @@ int main(int argc, char **argv)
     {
         wait(NULL);
     }
-    
+
     std::cout << "All teaching assistants finished." << std::endl;
 
     // 5. Clean up
-    if (munmap(shm_ptr, shm_size) == -1) {
+    if (munmap(shm_ptr, shm_size) == -1)
+    {
         perror("munmap failed");
     }
     close(shm_fd);
-    
+
     // Unlink: This removes the shared memory object from the system.
-    if (shm_unlink(SHM_NAME) == -1) {
+    if (shm_unlink(SHM_NAME) == -1)
+    {
         perror("shm_unlink failed");
     }
     std::cout << "Shared Memory object unlinked and producer exiting." << std::endl;
