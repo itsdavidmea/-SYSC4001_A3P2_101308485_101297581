@@ -127,7 +127,7 @@ Before running new tests, reset the exam and rubric files to their initial state
 
 ### Output Format
 The program provides detailed output showing:
-- **Critical Section Entry/Exit**: Clearly marked with `>>> ENTERING/EXITING CRITICAL SECTION <<<`
+
 - **Shared Memory Operations**: Explicit statements about reading/writing to shared memory
 - **TA Activities**: Processing exams, reviewing rubric items, marking exams
 - **Synchronization**: Which semaphore (exam_mutex or rubric_mutex) is being used
@@ -135,20 +135,17 @@ The program provides detailed output showing:
 
 ### Sample Output
 ```
-[TA1] >>> ENTERING CRITICAL SECTION (exam_mutex) <<<
-[TA1] Reading current exam path from shared memory...
-[TA1] Incrementing exam path in shared memory...
-[TA1] <<< EXITING CRITICAL SECTION (exam_mutex) >>>
+[TA2] ✅ Completed grading exam_0005.txt for Student ID: 0005
 
 ========================================
-[TA1] Processing exam_0001.txt (Student ID: 0001)
+[TA2] loaded exam_0006.txt into memory
 ========================================
-[TA1] Reviewing rubric items...
-  [TA1] Rubric Item #1 - Answer: 'A'
-  [TA1] ❌ INCORRECT - Current answer 'A' needs correction
-  [TA1] >>> ENTERING CRITICAL SECTION (rubric_mutex) <<<
-  [TA1] Writing to shared rubric: incrementing value at position 3
-  [TA1] <<< EXITING CRITICAL SECTION (rubric_mutex) >>>
+[TA2] Reviewing rubric items...
+  [TA2] Rubric Item #1 - Answer: 'Q'
+  [TA2] Evaluating correctness...
+
+[TA1] 📝 Grading exam exam_0006.txt...
+
 ```
 
 ## Termination Conditions
