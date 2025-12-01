@@ -43,10 +43,10 @@ int main(int argc, char *argv[])
 
     // Main loop: keep processing exams until we encounter exam with content 9999
     while (true)
-    
+
     {
 
-         // Access and process the rubric
+        // Access and process the rubric
         std::cout << "[" << ta_name << "] Reviewing rubric items..." << std::endl;
         for (int i = 0; shm_ptr->rubric[i] != '\0'; i++)
         {
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 
             std::cout << "  [" << ta_name << "] Rubric Item #" << shm_ptr->rubric[i] << " - Answer: '" << shm_ptr->rubric[i + 3] << "'" << std::endl;
             std::cout << "  [" << ta_name << "] Evaluating correctness..." << std::endl;
-            
+
             float randomNumber = randomNumGenerator(0.5, 1);
             delay(randomNumber);
             bool decision = randomBool();
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
             {
                 std::cout << "  [" << ta_name << "] ❌ INCORRECT - Current answer '" << shm_ptr->rubric[i + 3] << "' needs correction" << std::endl;
                 std::cout << "  [" << ta_name << "] Updating rubric in shared memory..." << std::endl;
-                
+
                 // Use rubric_mutex for rubric modifications
                 sem_wait(&shm_ptr->rubric_mutex);
                 shm_ptr->rubric[i + 3] += 1;
@@ -78,29 +78,22 @@ int main(int argc, char *argv[])
                 FILE *rubric_file = fopen("rubric", "w");
                 if (rubric_file != NULL)
                 {
-                    
+
                     fputs(rubricString.c_str(), rubric_file);
                     fclose(rubric_file);
                 }
-                std::cout << "  [" << ta_name << "] ✓ Rubric updated successfully (New value: '" << shm_ptr->rubric[i + 3] << "')" << std::endl;
+                std::cout << "  [" << ta_name << "] ✅ Rubric updated successfully (New value: '" << shm_ptr->rubric[i + 3] << "')" << std::endl;
                 sem_post(&shm_ptr->rubric_mutex);
-            } else {
+            }
+            else
+            {
                 std::cout << "  [" << ta_name << "] ✓ CORRECT - Item #" << shm_ptr->rubric[i] << " with answer '" << shm_ptr->rubric[i + 3] << "' is valid" << std::endl;
             }
-            
 
             i += 4;
-            
-
-            
         }
 
-
-
-        
-
-     
-       sem_wait(&shm_ptr->exam_mutex);
+        sem_wait(&shm_ptr->exam_mutex);
         std::string path = shm_ptr->exams;
         std::string filename = std::filesystem::path(path).filename().string();
         std::string file_number = filename.substr(5, 4);
@@ -108,9 +101,6 @@ int main(int argc, char *argv[])
         // Mark the current exam file (using local path variable)
         std::cout << "\n[" << ta_name << "] 📝 Grading exam " << filename << "..." << std::endl;
         // Get next exam file in critical section
-        
-        
-        
 
         FILE *check_file = fopen(shm_ptr->exams, "r");
         char first_line[256];
@@ -132,17 +122,15 @@ int main(int argc, char *argv[])
                 fclose(check_file);
                 sem_post(&shm_ptr->exam_mutex);
                 exit(0);
-                
+
                 break;
             }
         }
-        
+
         fclose(check_file);
-        
-        
 
         float randomMarkNumber = randomNumGenerator(1.0, 2.0);
-        delay(randomMarkNumber);  // Delay outside any lock
+        delay(randomMarkNumber); // Delay outside any lock
 
         // Write to exam file (no lock needed - each TA works on different files)
         FILE *file_ptr = fopen(path.c_str(), "a");
@@ -163,10 +151,9 @@ int main(int argc, char *argv[])
         char file_content[256];
         if (fgets(file_content, 256, file_to_read) != NULL)
         {
-            file_content[strcspn(file_content, "\n")] = '\0';  // Remove newline
+            file_content[strcspn(file_content, "\n")] = '\0'; // Remove newline
             std::cout << "[" << ta_name << "] ✅ Completed grading " << filename << " for Student ID: " << file_content << std::endl;
             // Increment to next exam while still holding lock
-            
         }
         else
         {
@@ -190,4 +177,4 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-//Student IDs: 101308485, 101297581
+// Student IDs: 101308485, 101297581

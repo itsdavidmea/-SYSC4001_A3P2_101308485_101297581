@@ -87,11 +87,11 @@ int main(int argc, char **argv)
     {
         perror("exam_mutex sem_init failed");
     }
-    
+
     if (sem_init(&shm_ptr->rubric_mutex, 1, 1) == -1)
     {
         perror("rubric_mutex sem_init failed");
-    } 
+    }
     // 4. Write data to the shared memory
     std::string exam_file = "exams/exam_0001.txt";
 
@@ -138,7 +138,6 @@ int main(int argc, char **argv)
         wait(NULL);
     }
     // parent waits for children later and eventually:
-   
 
     std::cout << "All teaching assistants finished." << std::endl;
 
@@ -159,4 +158,4 @@ int main(int argc, char **argv)
     return 0;
 }
 
-//Student IDs: 101308485, 101297581
+// Student IDs: 101308485, 101297581

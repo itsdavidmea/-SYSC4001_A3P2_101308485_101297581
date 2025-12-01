@@ -21,20 +21,21 @@
 
 // struct that represents rubric
 
-const char* SHM_NAME = "/my_sharedmemory";
-struct TA {
+const char *SHM_NAME = "/my_sharedmemory";
+struct TA
+{
     std::string name;
-    
-    TA(const std::string &n) 
-    : name(n) {}
+
+    TA(const std::string &n)
+        : name(n) {}
 };
 
 struct SharedMemory
 {
     char exams[FILE_SIZE];
     char rubric[RUBRIC_SIZE];
-    sem_t exam_mutex;    // Protects exams file path
-    sem_t rubric_mutex;  // Protects rubric data
+    sem_t exam_mutex;   // Protects exams file path
+    sem_t rubric_mutex; // Protects rubric data
 };
 
 // returns the files rubric
@@ -117,36 +118,33 @@ std::vector<std::string> split(std::string input, std::string delim)
     return tokens;
 }
 
-
-
 // Convert rubric file lines to a char array
-char* rubricToCharArray(const std::vector<std::string>& lines)
+char *rubricToCharArray(const std::vector<std::string> &lines)
 {
     // Allocate memory for the char array
-    char* rubric = new char[RUBRIC_SIZE];
-    rubric[0] = '\0';  // Initialize as empty string
-    
+    char *rubric = new char[RUBRIC_SIZE];
+    rubric[0] = '\0'; // Initialize as empty string
+
     for (const std::string &line : lines)
     {
-        // Check if adding this line would overflow the  
+        // Check if adding this line would overflow the
         if (strlen(rubric) + line.length() + 2 > RUBRIC_SIZE) // +2 for newline and null terminator
         {
             std::cerr << "Warning: Rubric data too large for buffer" << std::endl;
             break;
         }
-        
+
         // Concatenate the line and a newline character
-        
+
         strcat(rubric, line.c_str());
         strcat(rubric, "\n");
-      
     }
-    
+
     return rubric;
 }
 
 // Convert char array back to string
-std::string charArrayToString(char* charArray)
+std::string charArrayToString(char *charArray)
 {
     std::string newString = std::string(charArray);
 
@@ -156,18 +154,20 @@ std::string charArrayToString(char* charArray)
 unsigned int parseExams(std::vector<std::string> lines)
 {
     unsigned int exams = 0;
-    
+
     for (const std::string &line : lines)
     {
         if (line.empty())
             continue;
-        
+
         // Try to parse as integer, skip if it fails (e.g., "graded by: TA1")
-        try {
+        try
+        {
             exams = std::stoi(line);
-            break;  // Found a valid student ID, stop looking
+            break; // Found a valid student ID, stop looking
         }
-        catch (const std::invalid_argument&) {
+        catch (const std::invalid_argument &)
+        {
             // Line is not a number, skip it
             continue;
         }
@@ -176,79 +176,74 @@ unsigned int parseExams(std::vector<std::string> lines)
     return exams;
 }
 
-//create TAs list 
-std::vector<TA> createTAs(int numTAs) {
+// create TAs list
+std::vector<TA> createTAs(int numTAs)
+{
     std::vector<TA> allTAs;
     for (int i = 0; i < numTAs; i++)
     {
         TA person("Teaching Assistant" + std::to_string(i + 1));
         allTAs.push_back(person);
     }
-    
+
     return allTAs;
-    
 }
 
-
-
-//function to print TA
-std::ostream& operator<<(std::ostream& os, const TA& ta)
+// function to print TA
+std::ostream &operator<<(std::ostream &os, const TA &ta)
 {
     os << "TA { name: \"" << ta.name << "\" }";
     return os;
 }
 
-//function to print vector of TAs
-void printTAs(const std::vector<TA>& tas)
+// function to print vector of TAs
+void printTAs(const std::vector<TA> &tas)
 {
     std::cout << "TAs:\n";
-    for (const auto& ta : tas)
+    for (const auto &ta : tas)
         std::cout << "  - " << ta << "\n";
 }
 
-
-
-
-//create a random number generator with a given range of 2 numbers 
-float randomNumGenerator(float low, float high) {
+// create a random number generator with a given range of 2 numbers
+float randomNumGenerator(float low, float high)
+{
     static std::random_device rd;
     static std::mt19937 gen(rd());
     std::uniform_real_distribution<> dist(low, high);
     return dist(gen);
 }
 
-//generate a random boolean value
-bool randomBool() {
+// generate a random boolean value
+bool randomBool()
+{
     static std::random_device rd;
     static std::mt19937 gen(rd());
     std::uniform_int_distribution<> dist(0, 1);
     return dist(gen) == 1;
 }
 
-//create a delay function 
-void delay(float seconds) {
+// create a delay function
+void delay(float seconds)
+{
     std::this_thread::sleep_for(std::chrono::duration<float>(seconds));
-
 }
 
-
-//load new exam into memory 
+// load new exam into memory
 
 // Reset all exam files to their initial state (just student ID)
 
-
-void loadNewExam(std::string ta_name, char* path)
+void loadNewExam(std::string ta_name, char *path)
 {
     // 1. Find directory part by locating the last '/'
-    char* slash = strrchr(path, '/');
-    char* filename = (slash ? slash + 1 : path);
+    char *slash = strrchr(path, '/');
+    char *filename = (slash ? slash + 1 : path);
 
     // 2. Inside filename, find '_' and '.'
-    char* underscore = strchr(filename, '_');
-    char* dot = strchr(filename, '.');
+    char *underscore = strchr(filename, '_');
+    char *dot = strchr(filename, '.');
 
     if (!underscore || !dot)
-        return;  // invalid format, nothing to do
+        return; // invalid format, nothing to do
 
     // 3. Extract the number after the underscore as an int
     int num = 0;
@@ -263,22 +258,24 @@ void loadNewExam(std::string ta_name, char* path)
              "exam_%04d%s", num, dot);
 
     // 6. Rewrite the original path using the new filename
-    if (slash) {
+    if (slash)
+    {
         // Keep "directory/" and remove the old filename
         *(slash + 1) = '\0';
         strncat(path, newFilename, 255 - strlen(path));
-    } else {
+    }
+    else
+    {
         // No directory, just overwrite the filename
         strncpy(path, newFilename, 255);
         path[255] = '\0';
     }
- 
-    std::cout << "\n========================================" << std::endl;
-        std::cout << "[" << ta_name << "] loaded " << filename << " into memory" << std::endl;
-        std::cout << "========================================" << std::endl;
-}
 
+    std::cout << "\n========================================" << std::endl;
+    std::cout << "[" << ta_name << "] loaded " << filename << " into memory" << std::endl;
+    std::cout << "========================================" << std::endl;
+}
 
 #endif
 
-//Student IDs: 101308485, 101297581
+// Student IDs: 101308485, 101297581
