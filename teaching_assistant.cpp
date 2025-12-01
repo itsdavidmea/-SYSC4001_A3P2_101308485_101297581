@@ -74,6 +74,7 @@ int main(int argc, char *argv[]) {
             // Write updated rubric back to rubric file
             FILE *rubric_file = fopen("rubric", "w");
             if (rubric_file != NULL) {
+                std::cout << ta_name << " is writting to the rubric " << '\n';
                 fputs(rubricString.c_str(), rubric_file);
                 fclose(rubric_file);
             }
@@ -86,7 +87,8 @@ int main(int argc, char *argv[]) {
         i += 4;
     }
 
-    std::cout << ta_name << " picked Exam #" <<  shm_ptr->exams <<std::endl;
+    
+    
 
     FILE *file_ptr;
     file_ptr = fopen(examFile, "a");
@@ -95,12 +97,18 @@ int main(int argc, char *argv[]) {
         perror("Error opening file");
         return 0; 
     }
+    std::cout << ta_name << " picked Exam #" <<  shm_ptr->exams <<std::endl;
+    
+    std::cout << ta_name << " is marking Exam #" <<  shm_ptr->exams <<std::endl;
 
     // 4. Write data
     
     // Write the raw string data and a newline
+    float randomNumber = randomNumGenerator(1.0, 2.0);
+    delay(randomNumber);
     char data[50];
     fputs("\n", file_ptr);
+    
     snprintf(data, sizeof(data), "graded by: %s ", ta_name);
     fputs(data, file_ptr); 
     
@@ -110,7 +118,27 @@ int main(int argc, char *argv[]) {
         perror("Error closing file");
     }
 
-    std::cout << ta_name << " marked Exam #" <<  shm_ptr->exams <<std::endl;
+
+    FILE *file_to_read;
+    file_to_read = fopen(examFile, "r");
+    char buffer[256];
+    if (fgets(buffer, 256, file_to_read) != NULL) {
+      
+        std::cout << ta_name << " marked Exam #" <<  shm_ptr->exams << " for student: " << buffer <<std::endl;
+        
+        // If fgets didn't read a full line (i.e., the buffer isn't newline-terminated),
+        // print a newline for clean terminal output.
+        if (buffer[strlen(buffer) - 1] != '\n') {
+            printf("\n");
+        }
+    } else {
+        printf("File is empty or could not be read.\n");
+    }
+
+    // 4. Close the file
+    fclose(file_to_read);
+
+    
   
     // 4. Clean up
     if (munmap(shm_ptr, shm_size) == -1) {
