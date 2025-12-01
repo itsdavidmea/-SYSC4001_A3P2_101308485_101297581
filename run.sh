@@ -1,9 +1,12 @@
 #!/bin/bash
 # This script compiles and runs the program
 
-# Compile the program
+# Compile both programs separately
 echo "Compiling part2_a.cpp..."
 g++ -std=c++17 -o part2_a part2_a.cpp
+
+echo "Compiling teaching_assistant.cpp..."
+g++ -std=c++17 -o teaching_assistant teaching_assistant.cpp
 
 
 

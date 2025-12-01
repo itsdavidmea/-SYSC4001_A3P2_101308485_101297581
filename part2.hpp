@@ -18,7 +18,7 @@
 
 // struct that represents rubric
 
-
+const char* SHM_NAME = "/my_sharedmemory";
 struct TA {
     std::string name;
     
@@ -123,7 +123,7 @@ char* rubricToCharArray(const std::vector<std::string>& lines)
     
     for (const std::string &line : lines)
     {
-        // Check if adding this line would overflow the buffer
+        // Check if adding this line would overflow the  
         if (strlen(rubric) + line.length() + 2 > RUBRIC_SIZE) // +2 for newline and null terminator
         {
             std::cerr << "Warning: Rubric data too large for buffer" << std::endl;
