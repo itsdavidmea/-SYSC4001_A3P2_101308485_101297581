@@ -10,15 +10,15 @@
 
 int main(int argc, char *argv[]) {
     const char* ta_name = argv[1]; // This will be "TA1" or "TA2"
-    std::cout << "--- Shared Memory Consumer (Reader) ---" << std::endl;
-
+    
+   
     // 1. Open the shared memory object (O_RDWR for read-write access)
     int shm_fd = shm_open(SHM_NAME, O_RDWR, 0666);
     if (shm_fd == -1) {
         perror("shm_open failed. Is the Producer running?");
         return 1;
     }
-    std::cout << "Shared Memory object opened: " << SHM_NAME << std::endl;
+
 
     // We don't need ftruncate since the Producer already sized it.
     size_t shm_size = sizeof(SharedMemory);
@@ -38,13 +38,19 @@ int main(int argc, char *argv[]) {
         close(shm_fd);
         return 1;
     }
-    std::cout << "Shared Memory successfully mapped." << std::endl;
 
-    // 3. Read data from the shared memory
-    std::cout << "\n--- Data Read from Shared Memory ---" << std::endl;
-    std::cout << "Exams Count: " << shm_ptr->exams << std::endl;
-    std::cout << "Rubric:      " << shm_ptr->rubric << std::endl;
+    char examFile[50];
+    if (shm_ptr->exams > 0 && shm_ptr->exams <= 9)
+    {
+        snprintf(examFile, sizeof(examFile), "exams/exam_000%d.txt", shm_ptr->exams);
+    } else {
+        snprintf(examFile, sizeof(examFile), "exams/exam_00%d.txt", shm_ptr->exams);
+    }
+    
 
+    std::cout << ta_name << " picked Exam #" <<  shm_ptr->exams <<std::endl;
+ 
+    std::cout << ta_name << " accessing rubric" << std::endl;
     for (int i = 0; shm_ptr->rubric[i] != '\0';  i++)
     {
         if (shm_ptr->rubric[i + 1] == '\0')
@@ -55,16 +61,37 @@ int main(int argc, char *argv[]) {
         std::cout << ta_name << " looking rubic number: " << shm_ptr->rubric[i] << " "<< "rubric content is: " <<  shm_ptr->rubric[i + 3] << '\n';
         i += 4;
     }
-    
-    std::cout << "------------------------------------" << std::endl;
+    FILE *file_ptr;
+    file_ptr = fopen(examFile, "a");
+    // 3. Check for errors
+    if (file_ptr == NULL) {
+        perror("Error opening file");
+        return 0; 
+    }
 
+    // 4. Write data
+    
+    // Write the raw string data and a newline
+    char data[50];
+    fputs("\n", file_ptr);
+    snprintf(data, sizeof(data), "graded by: %s ", ta_name);
+    fputs(data, file_ptr); 
+    
+
+    // 5. Close the file
+    if (fclose(file_ptr) != 0) {
+        perror("Error closing file");
+    }
+
+    std::cout << ta_name << " marked Exam #" <<  shm_ptr->exams <<std::endl;
+  
     // 4. Clean up
     if (munmap(shm_ptr, shm_size) == -1) {
         perror("munmap failed");
     }
     close(shm_fd);
     
-    std::cout << "Consumer exiting." << std::endl;
+    std::cout << ta_name << " exiting." << std::endl;
 
     return 0;
 }
