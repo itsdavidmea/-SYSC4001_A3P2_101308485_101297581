@@ -43,47 +43,11 @@ int main(int argc, char *argv[])
 
     // Main loop: keep processing exams until we encounter exam with content 9999
     while (true)
+    
     {
-        // Read the current exam file path from shared memory
-        std::string path = shm_ptr->exams;
-        std::string filename = std::filesystem::path(path).filename().string();
-        
-        // Read the content of the exam file to check for termination condition
-        FILE *check_file = fopen(shm_ptr->exams, "r");
-        char first_line[256];
-        bool should_exit = false;
-        
-        if (check_file == NULL)
-        {
-            std::cout << ta_name << " could not open file " << filename << ", stopping." << std::endl;
-            break;
-        }
-        
-        if (fgets(first_line, 256, check_file) != NULL)
-        {
-            // Remove trailing newline if present
-            first_line[strcspn(first_line, "\n")] = '\0';
-            
-            // Check if the content is "9999"
-            if (strcmp(first_line, "9999") == 0)
-            {
-                std::cout << ta_name << " encountered exam with content 9999, stopping." << std::endl;
-                fclose(check_file);
-                break;
-            }
-        }
-        
-        
-        
-        
 
-        std::cout << "\n" << ta_name << " processing " << filename << std::endl;
-        
-        // Extract file number from filename for display purposes
-        std::string file_number = filename.substr(5, 4);
-
-        // Access and process the rubric
-        std::cout << ta_name << " accessing rubric" << std::endl;
+         // Access and process the rubric
+        std::cout << "[" << ta_name << "] Reviewing rubric items..." << std::endl;
         for (int i = 0; shm_ptr->rubric[i] != '\0'; i++)
         {
             if (shm_ptr->rubric[i + 1] == '\0')
@@ -91,14 +55,20 @@ int main(int argc, char *argv[])
                 break;
             }
 
-            std::cout << ta_name << " looking rubic number: " << shm_ptr->rubric[i] << " " << "rubric content is: " << shm_ptr->rubric[i + 3] << '\n';
+            std::cout << "  [" << ta_name << "] Rubric Item #" << shm_ptr->rubric[i] << " - Answer: '" << shm_ptr->rubric[i + 3] << "'" << std::endl;
+            std::cout << "  [" << ta_name << "] Evaluating correctness..." << std::endl;
+            
             float randomNumber = randomNumGenerator(0.5, 1);
-            std::cout << ta_name << " is rubric correct ? " << '\n';
             delay(randomNumber);
             bool decision = randomBool();
-          
-            if (decision == true)
+
+            if (decision == false)
             {
+                std::cout << "  [" << ta_name << "] ❌ INCORRECT - Current answer '" << shm_ptr->rubric[i + 3] << "' needs correction" << std::endl;
+                std::cout << "  [" << ta_name << "] Updating rubric in shared memory..." << std::endl;
+                
+                // Use rubric_mutex for rubric modifications
+                sem_wait(&shm_ptr->rubric_mutex);
                 shm_ptr->rubric[i + 3] += 1;
 
                 // Convert char array to string for writing to file
@@ -108,63 +78,109 @@ int main(int argc, char *argv[])
                 FILE *rubric_file = fopen("rubric", "w");
                 if (rubric_file != NULL)
                 {
-                    std::cout << ta_name << " is writting to the rubric " << '\n';
+                    
                     fputs(rubricString.c_str(), rubric_file);
                     fclose(rubric_file);
                 }
-            } 
+                std::cout << "  [" << ta_name << "] ✓ Rubric updated successfully (New value: '" << shm_ptr->rubric[i + 3] << "')" << std::endl;
+                sem_post(&shm_ptr->rubric_mutex);
+            } else {
+                std::cout << "  [" << ta_name << "] ✓ CORRECT - Item #" << shm_ptr->rubric[i] << " with answer '" << shm_ptr->rubric[i + 3] << "' is valid" << std::endl;
+            }
+            
 
             i += 4;
+            
+
+            
         }
 
-        // Open and mark the current exam file
-        FILE *file_ptr;
-        file_ptr = fopen(shm_ptr->exams, "a");
+
+
+        
+
+        // Extract file number from filename for display purposes
+        
+        
+        // std::cout << "\n========================================" << std::endl;
+        // std::cout << "[" << ta_name << "] Processing " << filename << " (Student ID: " << file_number << ")" << std::endl;
+        // std::cout << "========================================" << std::endl;
+
+       sem_wait(&shm_ptr->exam_mutex);
+        std::string path = shm_ptr->exams;
+        std::string filename = std::filesystem::path(path).filename().string();
+        std::string file_number = filename.substr(5, 4);
+
+        // Mark the current exam file (using local path variable)
+        std::cout << "\n[" << ta_name << "] 📝 Grading exam " << filename << "..." << std::endl;
+        // Get next exam file in critical section
+        
+        
+        
+
+        FILE *check_file = fopen(shm_ptr->exams, "r");
+        char first_line[256];
+
+        if (check_file == NULL)
+        {
+            std::cout << "\n[" << ta_name << "] File not found: " << filename << " - Terminating." << std::endl;
+            sem_post(&shm_ptr->exam_mutex);
+            break;
+        }
+
+        if (fgets(first_line, 256, check_file) != NULL)
+        {
+            first_line[strcspn(first_line, "\n")] = '\0';
+
+            if (strcmp(first_line, "9999") == 0)
+            {
+                std::cout << "\n[" << ta_name << "] *** TERMINATION SIGNAL DETECTED (9999) - Stopping work ***" << std::endl;
+                fclose(check_file);
+                sem_post(&shm_ptr->exam_mutex);
+                
+                break;
+            }
+        }
+        
+        fclose(check_file);
+        
+        
+
+        float randomMarkNumber = randomNumGenerator(1.0, 2.0);
+        delay(randomMarkNumber);  // Delay outside any lock
+
+        // Write to exam file (no lock needed - each TA works on different files)
+        FILE *file_ptr = fopen(path.c_str(), "a");
         if (file_ptr == NULL)
         {
             perror("Error opening file");
-            break;  // Exit the loop if we can't open the file
+            break;
         }
-        
-        std::cout << ta_name << " picked " << filename << std::endl;
-        std::cout << ta_name << " is marking Exam " << file_number << std::endl;
-        
-        float randomMarkNumber = randomNumGenerator(1.0, 2.0);
-        delay(randomMarkNumber);
-        
+
         char data[50];
         fputs("\n", file_ptr);
         snprintf(data, sizeof(data), "graded by: %s ", ta_name);
         fputs(data, file_ptr);
-
-        if (fclose(file_ptr) != 0)
-        {
-            perror("Error closing file");
-        }
+        fclose(file_ptr);
 
         // Read back the student ID from the exam file
-        FILE *file_to_read;
-        file_to_read = fopen(shm_ptr->exams, "r");
+        FILE *file_to_read = fopen(path.c_str(), "r");
         char file_content[256];
         if (fgets(file_content, 256, file_to_read) != NULL)
         {
-            std::cout << ta_name << " marked " << filename << " for student: " << file_content;
-
-            if (file_content[strlen(file_content) - 1] != '\n')
-            {
-                printf("\n");
-            }
+            file_content[strcspn(file_content, "\n")] = '\0';  // Remove newline
+            std::cout << "[" << ta_name << "] ✅ Completed grading " << filename << " for Student ID: " << file_content << std::endl;
+            // Increment to next exam while still holding lock
+            
         }
         else
         {
-            printf("File is empty or could not be read.\n");
+            std::cout << "[" << ta_name << "] ⚠️  Warning: Could not read student ID from file" << std::endl;
         }
+        loadNewExam(ta_name, shm_ptr->exams);
         fclose(file_to_read);
-
-        // Load next exam file
-        loadNewExam(shm_ptr->exams);
-        
-    }  // End of while loop
+        sem_post(&shm_ptr->exam_mutex);
+    } // End of while loop
 
     // 4. Clean up
     if (munmap(shm_ptr, shm_size) == -1)
@@ -173,7 +189,8 @@ int main(int argc, char *argv[])
     }
     close(shm_fd);
 
-    std::cout << ta_name << " exiting." << std::endl;
+    std::cout << "\n[" << ta_name << "] 🏁 Work completed. Exiting gracefully." << std::endl;
+    exit(0);
 
     return 0;
 }

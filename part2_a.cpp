@@ -13,6 +13,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <semaphore.h>
 
 #include <iostream>
 #include <vector>
@@ -35,6 +36,8 @@ int main(int argc, char **argv)
     std::cout << "\n";
 
     std::cout << "--- Shared Memory Producer (Writer) ---" << std::endl;
+
+    // creating semaphore
 
     // 1. Create and open the shared memory object
 
@@ -79,12 +82,21 @@ int main(int argc, char **argv)
 
     std::cout << "Shared Memory successfully mapped." << std::endl;
 
+    // init semaphores
+    if (sem_init(&shm_ptr->exam_mutex, 1, 1) == -1)
+    {
+        perror("exam_mutex sem_init failed");
+    }
+    
+    if (sem_init(&shm_ptr->rubric_mutex, 1, 1) == -1)
+    {
+        perror("rubric_mutex sem_init failed");
+    } 
     // 4. Write data to the shared memory
     std::string exam_file = "exams/exam_0001.txt";
 
     std::strncpy(shm_ptr->exams, exam_file.c_str(), sizeof(shm_ptr->exams) - 1);
     shm_ptr->exams[sizeof(shm_ptr->exams) - 1] = '\0';
-
 
     char *conversion = rubricToCharArray(rubricFile);
     strncpy(shm_ptr->rubric, conversion, RUBRIC_SIZE - 1);
@@ -125,6 +137,8 @@ int main(int argc, char **argv)
     {
         wait(NULL);
     }
+    // parent waits for children later and eventually:
+   
 
     std::cout << "All teaching assistants finished." << std::endl;
 

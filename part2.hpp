@@ -12,6 +12,7 @@
 #include <chrono>
 #include <cstring>
 #include <iomanip>
+#include <semaphore.h>
 
 #define RUBRIC_SIZE 256
 #define FILE_SIZE 256
@@ -32,6 +33,8 @@ struct SharedMemory
 {
     char exams[FILE_SIZE];
     char rubric[RUBRIC_SIZE];
+    sem_t exam_mutex;    // Protects exams file path
+    sem_t rubric_mutex;  // Protects rubric data
 };
 
 // returns the files rubric
@@ -234,7 +237,7 @@ void delay(float seconds) {
 // Reset all exam files to their initial state (just student ID)
 
 
-void loadNewExam(char* path)
+void loadNewExam(std::string ta_name, char* path)
 {
     // 1. Find directory part by locating the last '/'
     char* slash = strrchr(path, '/');
@@ -270,11 +273,9 @@ void loadNewExam(char* path)
         path[255] = '\0';
     }
     std::cout << path;
+    std::cout << "\n========================================" << std::endl;
+        std::cout << "[" << ta_name << "] loaded " << filename << " into memory" << std::endl;
+        std::cout << "========================================" << std::endl;
 }
-
-
-
-
-
 
 #endif
