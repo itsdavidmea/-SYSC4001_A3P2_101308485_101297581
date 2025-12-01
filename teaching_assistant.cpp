@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
     }
     
 
-    std::cout << ta_name << " picked Exam #" <<  shm_ptr->exams <<std::endl;
+   
  
     std::cout << ta_name << " accessing rubric" << std::endl;
     for (int i = 0; shm_ptr->rubric[i] != '\0';  i++)
@@ -59,8 +59,35 @@ int main(int argc, char *argv[]) {
         }
         
         std::cout << ta_name << " looking rubic number: " << shm_ptr->rubric[i] << " "<< "rubric content is: " <<  shm_ptr->rubric[i + 3] << '\n';
+        float randomNumber = randomNumGenerator(0.5, 1);
+        std::cout << ta_name << " is rubric correct ? " << '\n';
+        delay(randomNumber);
+        bool decision;
+        decision = true;
+        if (decision == true)
+        {
+            shm_ptr->rubric[i + 3] += 1;
+            
+            // Convert char array to string for writing to file
+            std::string rubricString = charArrayToString(shm_ptr->rubric);
+            
+            // Write updated rubric back to rubric file
+            FILE *rubric_file = fopen("rubric", "w");
+            if (rubric_file != NULL) {
+                fputs(rubricString.c_str(), rubric_file);
+                fclose(rubric_file);
+            }
+        } else {
+
+        }
+        
+
+
         i += 4;
     }
+
+    std::cout << ta_name << " picked Exam #" <<  shm_ptr->exams <<std::endl;
+
     FILE *file_ptr;
     file_ptr = fopen(examFile, "a");
     // 3. Check for errors

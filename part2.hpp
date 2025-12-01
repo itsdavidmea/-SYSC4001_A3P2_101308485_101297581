@@ -140,17 +140,32 @@ char* rubricToCharArray(const std::vector<std::string>& lines)
     return rubric;
 }
 
+// Convert char array back to string
+std::string charArrayToString(char* charArray)
+{
+    std::string newString = std::string(charArray);
+    std::cout << newString;
+    return newString;
+}
+
 unsigned int parseExams(std::vector<std::string> lines)
 {
-    unsigned int exams;
+    unsigned int exams = 0;
     
     for (const std::string &line : lines)
     {
         if (line.empty())
             continue;
-
-        auto studentId = std::stoi(line);
-        exams = studentId;
+        
+        // Try to parse as integer, skip if it fails (e.g., "graded by: TA1")
+        try {
+            exams = std::stoi(line);
+            break;  // Found a valid student ID, stop looking
+        }
+        catch (const std::invalid_argument&) {
+            // Line is not a number, skip it
+            continue;
+        }
     }
 
     return exams;
