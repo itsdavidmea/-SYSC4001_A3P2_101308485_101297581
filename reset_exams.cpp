@@ -13,7 +13,14 @@ void resetExamFiles()
         FILE* file = fopen(filename, "w");
         if (file != NULL)
         {
-            fprintf(file, "%04d\n", i);
+            if (i == 20)
+            {
+                fprintf(file, "9999\n");
+            }
+            else
+            {
+                fprintf(file, "%04d\n", i);
+            }
             fclose(file);
             std::cout << "✓ Reset " << filename << std::endl;
         }

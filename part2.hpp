@@ -214,6 +214,13 @@ float randomNumGenerator(float low, float high) {
     return dist(gen);
 }
 
+//generate a random boolean value
+bool randomBool() {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dist(0, 1);
+    return dist(gen) == 1;
+}
 
 //create a delay function 
 void delay(float seconds) {

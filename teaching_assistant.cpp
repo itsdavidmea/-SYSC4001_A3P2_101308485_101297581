@@ -53,7 +53,13 @@ int main(int argc, char *argv[])
         char first_line[256];
         bool should_exit = false;
         
-        if (check_file != NULL && fgets(first_line, 256, check_file) != NULL)
+        if (check_file == NULL)
+        {
+            std::cout << ta_name << " could not open file " << filename << ", stopping." << std::endl;
+            break;
+        }
+        
+        if (fgets(first_line, 256, check_file) != NULL)
         {
             // Remove trailing newline if present
             first_line[strcspn(first_line, "\n")] = '\0';
@@ -62,19 +68,14 @@ int main(int argc, char *argv[])
             if (strcmp(first_line, "9999") == 0)
             {
                 std::cout << ta_name << " encountered exam with content 9999, stopping." << std::endl;
-                should_exit = true;
+                fclose(check_file);
+                break;
             }
         }
         
-        if (check_file != NULL)
-        {
-            fclose(check_file);
-        }
         
-        if (should_exit)
-        {
-            break;
-        }
+        
+        
 
         std::cout << "\n" << ta_name << " processing " << filename << std::endl;
         
@@ -94,8 +95,8 @@ int main(int argc, char *argv[])
             float randomNumber = randomNumGenerator(0.5, 1);
             std::cout << ta_name << " is rubric correct ? " << '\n';
             delay(randomNumber);
-            bool decision;
-            decision = true;
+            bool decision = randomBool();
+          
             if (decision == true)
             {
                 shm_ptr->rubric[i + 3] += 1;
@@ -111,7 +112,7 @@ int main(int argc, char *argv[])
                     fputs(rubricString.c_str(), rubric_file);
                     fclose(rubric_file);
                 }
-            }
+            } 
 
             i += 4;
         }
