@@ -19,7 +19,7 @@ if [ $? -eq 0 ]; then
     
     # Run the program with the provided arguments
     # If no arguments provided, use default files and 2 TAs
-    defaultNumTAs=2
+    defaultNumTAs=4
     if [ $# -eq 0 ]; then
         ./part2_a rubric exams/exam_0001.txt $defaultNumTAs
     else

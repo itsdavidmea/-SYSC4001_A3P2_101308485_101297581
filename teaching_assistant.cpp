@@ -99,13 +99,7 @@ int main(int argc, char *argv[])
 
         
 
-        // Extract file number from filename for display purposes
-        
-        
-        // std::cout << "\n========================================" << std::endl;
-        // std::cout << "[" << ta_name << "] Processing " << filename << " (Student ID: " << file_number << ")" << std::endl;
-        // std::cout << "========================================" << std::endl;
-
+     
        sem_wait(&shm_ptr->exam_mutex);
         std::string path = shm_ptr->exams;
         std::string filename = std::filesystem::path(path).filename().string();
@@ -137,6 +131,7 @@ int main(int argc, char *argv[])
                 std::cout << "\n[" << ta_name << "] *** TERMINATION SIGNAL DETECTED (9999) - Stopping work ***" << std::endl;
                 fclose(check_file);
                 sem_post(&shm_ptr->exam_mutex);
+                exit(0);
                 
                 break;
             }

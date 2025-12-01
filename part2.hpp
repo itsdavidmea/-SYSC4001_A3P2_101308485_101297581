@@ -272,7 +272,7 @@ void loadNewExam(std::string ta_name, char* path)
         strncpy(path, newFilename, 255);
         path[255] = '\0';
     }
-    std::cout << path;
+ 
     std::cout << "\n========================================" << std::endl;
         std::cout << "[" << ta_name << "] loaded " << filename << " into memory" << std::endl;
         std::cout << "========================================" << std::endl;
